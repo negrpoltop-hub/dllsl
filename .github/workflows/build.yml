@@ -1,0 +1,32 @@
+name: build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: unzip -o "$(find . -name 'adminmod*.zip' | head -1)"
+      - name: Fix command API
+        run: |
+          sed -i 's|server.getCommandManager().executeWithPrefix(server.getCommandSource(), command);|try { server.getCommandManager().getDispatcher().execute(command.startsWith("/") ? command.substring(1) : command, server.getCommandSource()); } catch (com.mojang.brigadier.exceptions.CommandSyntaxException e) { }|' src/main/java/com/adminmod/Tools.java
+      - name: Hotkey Alt
+        run: |
+          sed -i 's#boolean down = ctrl && shift && pressed(window, HOTKEY);#boolean down = pressed(window, GLFW.GLFW_KEY_LEFT_ALT) || pressed(window, GLFW.GLFW_KEY_RIGHT_ALT);#' src/main/java/com/adminmod/client/AdminModClient.java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.2.1
+      - name: Build
+        run: gradle build --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adminmod-jar
+          path: build/libs/*.jar

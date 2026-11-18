@@ -17,6 +17,9 @@ jobs:
       - name: Hotkey Alt
         run: |
           sed -i 's#boolean down = ctrl && shift && pressed(window, HOTKEY);#boolean down = pressed(window, GLFW.GLFW_KEY_LEFT_ALT) || pressed(window, GLFW.GLFW_KEY_RIGHT_ALT);#' src/main/java/com/adminmod/client/AdminModClient.java
+      - name: Single player admin
+        run: |
+          sed -i 's#public static boolean isAdmin(ServerPlayerEntity player) {#public static boolean isAdmin(ServerPlayerEntity player) { if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) { return true; }#' src/main/java/com/adminmod/Config.java
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
